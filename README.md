@@ -27,21 +27,31 @@ For this project, I built an API that allows clients to create and manage a pers
 
 ## Project Tasks
 
--[x] **Create file(s) and install Express:** On your computer, create a directory to hold your file(s) for a Node/Express project. Initialize a new Node.js project with `npm`, create a file to run your server, and add the Express library in said file.
-You can start out with a single file called `server.js` or `index.js`. As you progress on your project you might find it best to separate logic under different folders/files in order to make it more scalable.
+- [x] **Create file(s) and install Express:** On your computer, create a directory to hold your file(s) for a Node/Express project. Initialize a new Node.js project with `npm`, create a file to run your server, and add the Express library in said file.
+      You can start out with a single file called `server.js` or `index.js`. As you progress on your project you might find it best to separate logic under different folders/files in order to make it more scalable.
 
--[x] **Set up the environment and a simple endpoint:**
-Create an Express app and write out an endpoint to send a `GET` request so that the message “Hello, World” appears when you open `localhost:3000/` in your browser.
-Make sure to write out the necessary code to run a server in your main file and set your port to `3000`. The URL for the landing page is usually `/`. If working correctly, you should be able to navigate to `localhost:3000/` and see your message, “Hello, World” displayed on the browser.
+- [x] **Set up the environment and a simple endpoint:**
+      Create an Express app and write out an endpoint to send a `GET` request so that the message “Hello, World” appears when you open `localhost:3000/` in your browser.
+      Make sure to write out the necessary code to run a server in your main file and set your port to `3000`. The URL for the landing page is usually `/`. If working correctly, you should be able to navigate to `localhost:3000/` and see your message, “Hello, World” displayed on the browser.
 
--[x] **Version Control**:
-Set up Git tracking in your directory and make sure to add and commit changes as you make them.
-You can set up your git tracking with `git init`. Remember to add and commit your progress as you move forward with the project.
+- [x] **Version Control**:
+      Set up Git tracking in your directory and make sure to add and commit changes as you make them.
+      You can set up your git tracking with `git init`. Remember to add and commit your progress as you move forward with the project.
 
--[x] **Create your envelopes:**
-Create global variables to store information about your envelopes and total budget. Create an endpoint that sends a POST request in order to generate individual budget envelopes.
-It will be useful to prepend your endpoints with a keyword for your API, such as `/envelopes`. In this case, an array holding objects to represent each envelope might be a useful approach. Each envelope will be represented by a numerical ID and hold information regarding its budget and title.
-Feel free to attach response codes so that users can see if their requests were sent successfully or if there were any errors.
+- [x] **Create your envelopes:**
+      Create global variables to store information about your envelopes and total budget. Create an endpoint that sends a POST request in order to generate individual budget envelopes.
+      It will be useful to prepend your endpoints with a keyword for your API, such as `/envelopes`. In this case, an array holding objects to represent each envelope might be a useful approach. Each envelope will be represented by a numerical ID and hold information regarding its budget and title.
+      Feel free to attach response codes so that users can see if their requests were sent successfully or if there were any errors.
+
+- [x] **Retrieve all your envelopes:** Create an endpoint that sends a GET request to retrieve all your envelopes. The endpoint can be located in your homepage URL or something more specific if you wish.
+
+- [x] **Test your endpoints with Postman:**
+      Using Postman, test your endpoints by creating a few envelopes and see if you can retrieve them by making a GET request. Throughout this project, make sure to continuously use Postman to test your endpoints and requests.
+
+- [] **Retrieve specific envelopes:**
+  Create an endpoint that sends a GET request in order to retrieve a specific envelope and see their current budget and other information.
+  You will be using an envelope’s unique ID in order to retrieve it. This is typically done by parsing the URL parameter for an ID and searching for the envelope with the corresponding ID.
+  Make sure to test this in Postman to see if the requests are sent successfully.
 
 ## Installation
 
