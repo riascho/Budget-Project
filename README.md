@@ -48,10 +48,18 @@ For this project, I built an API that allows clients to create and manage a pers
 - [x] **Test your endpoints with Postman:**
       Using Postman, test your endpoints by creating a few envelopes and see if you can retrieve them by making a GET request. Throughout this project, make sure to continuously use Postman to test your endpoints and requests.
 
-- [] **Retrieve specific envelopes:**
-  Create an endpoint that sends a GET request in order to retrieve a specific envelope and see their current budget and other information.
-  You will be using an envelope’s unique ID in order to retrieve it. This is typically done by parsing the URL parameter for an ID and searching for the envelope with the corresponding ID.
-  Make sure to test this in Postman to see if the requests are sent successfully.
+- [x] **Retrieve specific envelopes:**
+      Create an endpoint that sends a GET request in order to retrieve a specific envelope and see their current budget and other information.
+      You will be using an envelope’s unique ID in order to retrieve it. This is typically done by parsing the URL parameter for an ID and searching for the envelope with the corresponding ID.
+      Make sure to test this in Postman to see if the requests are sent successfully.
+
+- [] **Update specific envelopes and balances:**
+  Create an endpoint that updates specific envelopes when money is being extracted from them. You should also be able to update any other information about an envelope using this endpoint.
+  We want to be able to update our total budget and specific envelopes as we extract money from them.
+  Depending on how you’ve set up your balance methods, this could either be a POST or PUT request. If you set a balance to a specific value a PUT request will be more appropriate. If you’re constantly subtracting an amount from a balance, then a POST request
+  Similarly to the GET request (for a specific envelope), you can use req.param() to search the URL for a parameter. You’ll be sending a value that will be subtracted from the envelope’s budget. Add that logic in the callback function of the endpoint.
+  This would be a good place to add some data validation to make sure the correct information is being passed into the request!
+  If you want to update other information about a budget envelope you can do that here as well.
 
 ## Installation
 

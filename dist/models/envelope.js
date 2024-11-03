@@ -11,5 +11,8 @@ class Envelope {
         this.budget = budget;
     }
     balance = 0;
+    get _id() {
+        return this.id;
+    }
 }
 exports.Envelope = Envelope;

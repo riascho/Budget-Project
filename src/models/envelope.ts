@@ -5,4 +5,8 @@ export class Envelope {
     public budget: number
   ) {}
   balance: number = 0;
+
+  get _id() {
+    return this.id;
+  }
 }
