@@ -28,7 +28,7 @@ export const createEnvelope: RequestHandler = (req, res) => {
     res.status(201).send(`Envelope created!\n${JSON.stringify(parsedBody)}`);
   } else {
     res
-      .status(204)
+      .status(400)
       .send(`Could not create envelope\n${JSON.stringify(parsedBody)}`);
   }
 };
@@ -44,11 +44,26 @@ export const getSingleEnvelope: RequestHandler<{ id: string }> = (req, res) => {
   }
 };
 
+export const deleteSingleEnvelope: RequestHandler<{ id: string }> = (
+  req,
+  res
+) => {
+  const foundEnvelopeIndex = findEnvelopeIndex(req.params.id);
+  if (foundEnvelopeIndex === -1) {
+    res
+      .status(404)
+      .json({ message: `Couldn't find Envelope id: ${req.params.id}` });
+    return;
+  } else {
+    res.status(200).json(envelopes[foundEnvelopeIndex]);
+    envelopes.splice(foundEnvelopeIndex, 1);
+  }
+};
+
 // POST requests to extract or add money
 export const accessEnvelope: RequestHandler<{ id: string }> = (req, res) => {
   const parsedBody = req.body; // TODO: declare type
   const foundEnvelopeIndex = findEnvelopeIndex(req.params.id);
-
   if (foundEnvelopeIndex === -1) {
     res
       .status(404)
@@ -106,5 +121,5 @@ export const updateEnvelope: RequestHandler<{ id: string }> = (req, res) => {
   if (parsedBody.budget) {
     envelopes[foundEnvelopeIndex].budget = parsedBody.budget;
   }
-  res.status(201).json(envelopes[foundEnvelopeIndex]);
+  res.status(200).json(envelopes[foundEnvelopeIndex]);
 };
