@@ -1,7 +1,7 @@
 import { RequestHandler } from "express";
 import { Envelope } from "../models/envelope";
 
-// TODO: extract and isolate duplicate code -> check out param function from other project!
+// TODO: extract and isolate duplicate code -> check out param function from express IRouter.param()
 // TODO: use try/catch blocks and better error handling
 
 let envelopeId = 1;
@@ -36,9 +36,11 @@ export const createEnvelope: RequestHandler = (req, res) => {
 export const getSingleEnvelope: RequestHandler<{ id: string }> = (req, res) => {
   const foundEnvelopeIndex = findEnvelopeIndex(req.params.id);
   if (foundEnvelopeIndex === -1) {
-    res.status(404).send(`Couldn't find Envelope id: ${req.params.id}`);
+    res
+      .status(404)
+      .json({ message: `Couldn't find Envelope id: ${req.params.id}` });
   } else {
-    res.status(200).send(envelopes[foundEnvelopeIndex]);
+    res.status(200).json(envelopes[foundEnvelopeIndex]);
   }
 };
 
@@ -68,9 +70,9 @@ export const accessEnvelope: RequestHandler<{ id: string }> = (req, res) => {
     res.status(403).json({
       message: `Extracting $${Math.abs(
         parsedBody.amount
-      )} will over-stretch your budget by $${Math.abs(
+      )} will exceed your current balance by $${Math.abs(
         foundEnvelope.updateBalance(parsedBody.amount)
-      )}! Please access less!`,
+      )}! Please access less or increase balance!`,
     });
   }
 };
@@ -104,5 +106,5 @@ export const updateEnvelope: RequestHandler<{ id: string }> = (req, res) => {
   if (parsedBody.budget) {
     envelopes[foundEnvelopeIndex].budget = parsedBody.budget;
   }
-  res.status(201).send(envelopes[foundEnvelopeIndex]);
+  res.status(201).json(envelopes[foundEnvelopeIndex]);
 };

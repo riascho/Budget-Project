@@ -85,8 +85,12 @@ For this project, I built an API that allows clients to create and manage a pers
 
 ## Usage
 
-1. Start the application:
+1. Compile the code:
+   ```bash
+   tsc
+   ```
+2. Start the application:
    ```bash
    npm start
    ```
-2. Open your browser and navigate to `http://localhost:3000`.
+3. Open your browser and navigate to `http://localhost:3000`.

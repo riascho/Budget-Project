@@ -29,14 +29,6 @@ export class Envelope {
     const difference = this._balance - Math.abs(amount);
     if (amount > 0 || difference >= 0) {
       this._balance += amount;
-    } else {
-      console.warn(
-        `Extracting $${Math.abs(
-          amount
-        )} will over-stretch your budget by $${Math.abs(
-          difference
-        )}!\nPlease access less!`
-      );
     }
     return difference;
   }
