@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Envelope Manager</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1>Envelope Manager</h1>
+
+    <div class="operations">
+      <div class="operation">
+        <h3>Create Envelope</h3>
+        <input type="text" id="createName" placeholder="Name" />
+        <input type="number" id="createBudget" placeholder="Budget" />
+        <button id="createButton">Create</button>
+      </div>
+
+      <div class="operation">
+        <h3>Update Envelope</h3>
+        <input type="text" id="updateId" placeholder="ID" />
+        <input type="text" id="updateName" placeholder="New Name" />
+        <input type="number" id="updateBudget" placeholder="New Budget" />
+        <button id="updateButton">Update</button>
+      </div>
+
+      <div class="operation">
+        <h3>Delete Envelope</h3>
+        <input type="text" id="deleteId" placeholder="ID" />
+        <button id="deleteButton">Delete</button>
+      </div>
+
+      <div class="operation">
+        <h3>Transfer Budget</h3>
+        <input type="text" id="fromId" placeholder="From ID" />
+        <input type="text" id="toId" placeholder="To ID" />
+        <input type="number" id="amount" placeholder="Amount" />
+        <button id="transferButton">Transfer</button>
+      </div>
+    </div>
+
+    <h2>Envelopes</h2>
+    <div id="envelopeGrid" class="grid">
+      <!-- Envelopes will be displayed here -->
+    </div>
+  </body>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Add event listeners to buttons
+      document
+        .getElementById("createButton")
+        .addEventListener("click", createEnvelope);
+      document
+        .getElementById("updateButton")
+        .addEventListener("click", updateEnvelope);
+      document
+        .getElementById("deleteButton")
+        .addEventListener("click", deleteEnvelope);
+      document
+        .getElementById("transferButton")
+        .addEventListener("click", transferBudget);
+
+      // Load envelopes when page loads
+      loadEnvelopes();
+    });
+
+    // Fetch and display all envelopes
+    async function loadEnvelopes() {
+      try {
+        const response = await fetch("/envelopes");
+        const envelopes = await response.json();
+        const grid = document.getElementById("envelopeGrid");
+
+        if (!Array.isArray(envelopes)) {
+          console.error("Expected array of envelopes, got:", envelopes);
+          return;
+        }
+
+        grid.innerHTML = envelopes
+          .map(
+            (env) => `
+            <div class="envelope">
+              <h3>${env.name || "Unnamed"}</h3>
+              <p>ID: ${env.id}</p>
+              <p>Budget: $${env.budget.toFixed(2)}</p>
+            </div>
+          `
+          )
+          .join("");
+      } catch (error) {
+        console.error("Error loading envelopes:", error);
+        document.getElementById("envelopeGrid").innerHTML =
+          '<p style="color: red;">Error loading envelopes. Check console for details.</p>';
+      }
+    }
+
+    // Create new envelope
+    async function createEnvelope() {
+      const name = document.getElementById("createName").value;
+      const budget = document.getElementById("createBudget").value;
+
+      if (!name || !budget) {
+        alert("Please fill in both name and budget");
+        return;
+      }
+
+      try {
+        const response = await fetch("/envelopes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, budget: Number(budget) }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // Clear the input fields after successful creation
+        document.getElementById("createName").value = "";
+        document.getElementById("createBudget").value = "";
+
+        // Reload the envelopes
+        await loadEnvelopes();
+      } catch (error) {
+        console.error("Error creating envelope:", error);
+        alert("Failed to create envelope. Check console for details.");
+      }
+    }
+
+    // Update envelope
+    async function updateEnvelope() {
+      const id = document.getElementById("updateId").value;
+      const name = document.getElementById("updateName").value;
+      const budget = document.getElementById("updateBudget").value;
+
+      try {
+        const response = await fetch(`/envelopes/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, budget: Number(budget) }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        await loadEnvelopes();
+      } catch (error) {
+        console.error("Error updating envelope:", error);
+        alert("Failed to update envelope. Check console for details.");
+      }
+    }
+
+    // Delete envelope
+    async function deleteEnvelope() {
+      const id = document.getElementById("deleteId").value;
+
+      try {
+        const response = await fetch(`/envelopes/${id}`, {
+          method: "DELETE",
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        await loadEnvelopes();
+      } catch (error) {
+        console.error("Error deleting envelope:", error);
+        alert("Failed to delete envelope. Check console for details.");
+      }
+    }
+
+    // Transfer budget
+    async function transferBudget() {
+      const fromId = document.getElementById("fromId").value;
+      const toId = document.getElementById("toId").value;
+      const amount = document.getElementById("amount").value;
+
+      try {
+        const response = await fetch(`/envelopes/transfer/${fromId}/${toId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ amount: Number(amount) }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        await loadEnvelopes();
+      } catch (error) {
+        console.error("Error transferring budget:", error);
+        alert("Failed to transfer budget. Check console for details.");
+      }
+    }
+  </script>
+</html>
