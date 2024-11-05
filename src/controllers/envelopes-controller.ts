@@ -6,6 +6,7 @@ import { Envelope } from "../models/envelope";
 
 let envelopeId = 1;
 const envelopes: Envelope[] = [];
+// returns -1 if not found
 function findEnvelopeIndex(id: string): number {
   return envelopes.findIndex((item) => {
     return item.id == id;
@@ -17,7 +18,7 @@ export const getAllEnvelopes: RequestHandler = (req, res) => {
 };
 
 export const createEnvelope: RequestHandler = (req, res) => {
-  const parsedBody = req.body; // TODO: declare type
+  const parsedBody: { title: string; budget: number } = req.body; // TODO: use generic type
   if (parsedBody.title && parsedBody.budget) {
     const envelope = new Envelope(
       (envelopeId++).toString(), // TODO: use increment method from global class or variable
@@ -62,7 +63,7 @@ export const deleteSingleEnvelope: RequestHandler<{ id: string }> = (
 
 // POST requests to extract or add money
 export const accessEnvelope: RequestHandler<{ id: string }> = (req, res) => {
-  const parsedBody = req.body; // TODO: declare type
+  const parsedBody: { amount: number } = req.body; // TODO: use generic type
   const foundEnvelopeIndex = findEnvelopeIndex(req.params.id);
   if (foundEnvelopeIndex === -1) {
     res
@@ -94,7 +95,6 @@ export const accessEnvelope: RequestHandler<{ id: string }> = (req, res) => {
 
 // PUT request to change envelope title or budget
 export const updateEnvelope: RequestHandler<{ id: string }> = (req, res) => {
-  const parsedBody = req.body; // TODO: declare type
   const foundEnvelopeIndex = findEnvelopeIndex(req.params.id);
   if (foundEnvelopeIndex === -1) {
     res
@@ -102,6 +102,7 @@ export const updateEnvelope: RequestHandler<{ id: string }> = (req, res) => {
       .json({ message: `Couldn't find Envelope id: ${req.params.id}` });
     return;
   }
+  const parsedBody: { title: string; budget: number } = req.body; // TODO: use generic type // this now might break if only one property is present
   if (parsedBody.title === undefined && parsedBody.budget === undefined) {
     res.status(400).json({
       message:
@@ -122,4 +123,49 @@ export const updateEnvelope: RequestHandler<{ id: string }> = (req, res) => {
     envelopes[foundEnvelopeIndex].budget = parsedBody.budget;
   }
   res.status(200).json(envelopes[foundEnvelopeIndex]);
+};
+
+export const transferBudget: RequestHandler<{
+  from: string;
+  to: string;
+}> = (req, res) => {
+  const fromIndex = findEnvelopeIndex(req.params.from);
+  const toIndex = findEnvelopeIndex(req.params.to);
+  if (fromIndex === -1) {
+    res
+      .status(404)
+      .json({ message: `Couldn't find Envelope id: ${req.params.from}` });
+    return;
+  }
+  if (toIndex === -1) {
+    res
+      .status(404)
+      .json({ message: `Couldn't find Envelope id: ${req.params.to}` });
+    return;
+  }
+  const fromEnvelope: Envelope = envelopes[fromIndex];
+  const toEnvelope: Envelope = envelopes[toIndex];
+
+  let amount = Math.abs(parseInt(req.headers?.amount as string)); // TODO: use generic type
+
+  if (amount === undefined) {
+    res.status(400).json({
+      message: "You need to send an 'amount' in the request header!",
+    });
+    return;
+  }
+
+  if (fromEnvelope.budget < amount) {
+    res.status(403).json({
+      message: `Not enough budget in envelope ${fromEnvelope.title.toUpperCase()} to transfer $${amount}! Current budget: $${
+        fromEnvelope.budget
+      }`,
+    });
+    return;
+  }
+  fromEnvelope.budget -= amount;
+  toEnvelope.budget += amount;
+  res.status(200).json({
+    message: `Transferred $${amount} from envelope ${fromEnvelope.title.toUpperCase()} to envelope ${toEnvelope.title.toUpperCase()}`,
+  });
 };

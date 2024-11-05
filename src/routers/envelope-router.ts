@@ -6,6 +6,7 @@ import {
   accessEnvelope,
   updateEnvelope,
   deleteSingleEnvelope,
+  transferBudget,
 } from "../controllers/envelopes-controller";
 
 export const envelopeRouter = Router();
@@ -21,3 +22,5 @@ envelopeRouter.post("/:id", accessEnvelope);
 envelopeRouter.put("/:id", updateEnvelope);
 
 envelopeRouter.delete("/:id", deleteSingleEnvelope);
+
+envelopeRouter.post("/transfer/:from/:to", transferBudget);

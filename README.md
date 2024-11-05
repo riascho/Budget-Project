@@ -68,7 +68,7 @@ For this project, I built an API that allows clients to create and manage a pers
       When deleting entities, we typically delete them one by one to avoid big accidental data loss.
       You can use the high order function filter in order to update your budget envelopes and remove the specific envelope from the request parameter.
 
-- [ ] **Transfer budgets from different envelopes:**
+- [x] **Transfer budgets from different envelopes:**
       Create a `POST` request that uses two parameters and transfers a value from one envelope to another.
       We want the feature to be able to change budgets between envelopes. Perhaps one month we’d like to remove some money from our “dining out” envelope and put it in our “groceries” envelope.
       Your URL might look something like this: `http://localhost:3000/envelopes/transfer/:from/:to`
