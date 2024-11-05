@@ -74,15 +74,25 @@ For this project, I built an API that allows clients to create and manage a pers
       Your URL might look something like this: `http://localhost:3000/envelopes/transfer/:from/:to`
       This request would take in a `header` value and update the balances of both envelopes by subtracting it from one and adding it to the other.
 
+- [x] **Upload project to GitHub:**
+      Make sure all your code has been added and committed with git and upload your project into a new GitHub repository.
+      Add a `README.md` with instructions on how to use your API.
+      If you created a repository in the early stages of the project, all you need is to push your main branch in order to update to the repo.
+
+### Bonus Tasks:
+
+- [ ] Create a frontend that displays envelopes and balances, and allows users to update each envelop balance
+- [ ] Add an API endpoint allowing user to add a single balance that’s distributed to multiple envelopes
+
 ## Installation
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/PersonalBudget_Codecademy.git
+   git clone https://github.com/riascho/Budget-Project.git
    ```
 2. Navigate to the project directory:
    ```bash
-   cd PersonalBudget_Codecademy
+   cd Budget-Project
    ```
 3. Install dependencies:
    ```bash
