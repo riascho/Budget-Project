@@ -1,4 +1,4 @@
-import { RequestHandler } from "express";
+import type { RequestHandler } from "express";
 import { Envelope } from "../models/envelope";
 
 // TODO: extract and isolate duplicate code -> check out param function from express IRouter.param()
@@ -9,7 +9,7 @@ const envelopes: Envelope[] = [];
 // returns -1 if not found
 function findEnvelopeIndex(id: string): number {
   return envelopes.findIndex((item) => {
-    return item.id == id;
+    return item.id === id;
   });
 }
 
@@ -55,10 +55,9 @@ export const deleteSingleEnvelope: RequestHandler<{ id: string }> = (
       .status(404)
       .json({ message: `Couldn't find Envelope id: ${req.params.id}` });
     return;
-  } else {
-    res.status(200).json(envelopes[foundEnvelopeIndex]);
-    envelopes.splice(foundEnvelopeIndex, 1);
   }
+  res.status(200).json(envelopes[foundEnvelopeIndex]);
+  envelopes.splice(foundEnvelopeIndex, 1);
 };
 
 // POST requests to extract or add money
@@ -146,7 +145,7 @@ export const transferBudget: RequestHandler<{
   const fromEnvelope: Envelope = envelopes[fromIndex];
   const toEnvelope: Envelope = envelopes[toIndex];
 
-  let amount = Math.abs(parseInt(req.headers?.amount as string)); // TODO: use generic type
+  const amount = Math.abs(Number.parseInt(req.headers?.amount as string)); // TODO: use generic type
 
   if (amount === undefined) {
     res.status(400).json({

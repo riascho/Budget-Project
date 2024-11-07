@@ -1,4 +1,4 @@
-import Express, { RequestHandler } from "express";
+import Express from "express";
 import { envelopeRouter } from "./routers/envelope-router";
 
 const app = Express();
