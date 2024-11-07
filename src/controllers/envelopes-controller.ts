@@ -108,7 +108,7 @@ export const updateEnvelope: RequestHandler<{ id: string }> = (req, res) => {
       .json({ message: `Couldn't find Envelope id: ${req.params.id}` });
     return;
   }
-  const parsedBody: { title: string; budget: number } = req.body; // TODO: use generic type // this now might break if only one property is present
+  const parsedBody: { title: string; budget: number } = req.body; // TODO: use generic type
   if (parsedBody.title === undefined && parsedBody.budget === undefined) {
     res.status(400).json({
       message:
