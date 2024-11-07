@@ -6,7 +6,7 @@ export class Envelope {
   ) {
     this.updateBalance(this.budget);
   }
-  private _balance: number = 0;
+  private _balance = 0;
 
   get id() {
     return this._id;
