@@ -4,8 +4,15 @@ import { Envelope } from "../models/envelope";
 // TODO: extract and isolate duplicate code -> check out param function from express IRouter.param()
 // TODO: use try/catch blocks and better error handling
 
+// Review Feedback:
+// In a production app, this would be your database
+// While this works you could also create a DatabaseConnector class which pretends to
+// talk to a database and "secretly" stores things in memory while you're developing (This would usually be called a Stub or Mock)
+// This way you'll have everything organized for when you do need/want a database
+
 let envelopeId = 1;
 const envelopes: Envelope[] = [];
+
 // returns -1 if not found
 function findEnvelopeIndex(id: string): number {
   return envelopes.findIndex((item) => {
@@ -13,7 +20,7 @@ function findEnvelopeIndex(id: string): number {
   });
 }
 
-export const getAllEnvelopes: RequestHandler = (req, res) => {
+export const getAllEnvelopes: RequestHandler = (_req, res) => {
   res.status(200).send(envelopes);
 };
 
@@ -130,6 +137,7 @@ export const transferBudget: RequestHandler<{
 }> = (req, res) => {
   const fromIndex = findEnvelopeIndex(req.params.from);
   const toIndex = findEnvelopeIndex(req.params.to);
+
   if (fromIndex === -1) {
     res
       .status(404)
@@ -142,9 +150,9 @@ export const transferBudget: RequestHandler<{
       .json({ message: `Couldn't find Envelope id: ${req.params.to}` });
     return;
   }
+
   const fromEnvelope: Envelope = envelopes[fromIndex];
   const toEnvelope: Envelope = envelopes[toIndex];
-
   const amount = Math.abs(Number.parseInt(req.headers?.amount as string)); // TODO: use generic type
 
   if (amount === undefined) {
@@ -162,6 +170,7 @@ export const transferBudget: RequestHandler<{
     });
     return;
   }
+
   fromEnvelope.budget -= amount;
   toEnvelope.budget += amount;
   res.status(200).json({
