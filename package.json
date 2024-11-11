@@ -1,4 +1,9 @@
 {
+  "name": "personalbudget_codecademy",
+  "version": "1.0.0",
+  "description": "budget manager api",
+  "author": "Ria Scholz",
+  "license": "ISC",
   "scripts": {
     "start": "snowpack dev",
     "build": "snowpack build",
@@ -7,11 +12,13 @@
     "lint": "prettier --check \"src/**/*.{ts,js}\""
   },
   "dependencies": {
-    "canvas-confetti": "^1.2.0"
+    "express": "^4.21.1",
+    "tsc": "^2.0.4"
   },
   "devDependencies": {
     "@snowpack/plugin-typescript": "^1.2.1",
-    "@types/canvas-confetti": "^1.0.0",
+    "@types/node": "^22.8.6",
+    "@types/express": "^5.0.0",
     "@types/snowpack-env": "^2.3.3",
     "prettier": "^2.2.1",
     "snowpack": "^3.3.7",
