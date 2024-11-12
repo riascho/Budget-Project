@@ -1,5 +1,5 @@
-import type { RequestHandler } from "express";
-import { Envelope } from "../models/envelope";
+import type { RequestHandler } from 'express';
+import { Envelope } from '../models/envelope';
 
 // TODO: extract and isolate duplicate code -> check out param function from express IRouter.param()
 // TODO: use try/catch blocks and better error handling
@@ -11,7 +11,7 @@ import { Envelope } from "../models/envelope";
 // This way you'll have everything organized for when you do need/want a database
 
 let envelopeId = 1;
-const envelopes: Envelope[] = [];
+export const envelopes: Envelope[] = [];
 
 // returns -1 if not found
 function findEnvelopeIndex(id: string): number {
@@ -30,7 +30,7 @@ export const createEnvelope: RequestHandler = (req, res) => {
     const envelope = new Envelope(
       (envelopeId++).toString(), // TODO: use increment method from global class or variable
       parsedBody.title,
-      parsedBody.budget
+      parsedBody.budget,
     );
     envelopes.push(envelope);
     res.status(201).send(`Envelope created!\n${JSON.stringify(parsedBody)}`);
@@ -54,7 +54,7 @@ export const getSingleEnvelope: RequestHandler<{ id: string }> = (req, res) => {
 
 export const deleteSingleEnvelope: RequestHandler<{ id: string }> = (
   req,
-  res
+  res,
 ) => {
   const foundEnvelopeIndex = findEnvelopeIndex(req.params.id);
   if (foundEnvelopeIndex === -1) {
@@ -91,9 +91,9 @@ export const accessEnvelope: RequestHandler<{ id: string }> = (req, res) => {
   } else {
     res.status(403).json({
       message: `Extracting $${Math.abs(
-        parsedBody.amount
+        parsedBody.amount,
       )} will exceed your current balance by $${Math.abs(
-        foundEnvelope.updateBalance(parsedBody.amount)
+        foundEnvelope.updateBalance(parsedBody.amount),
       )}! Please access less or increase balance!`,
     });
   }
@@ -118,7 +118,7 @@ export const updateEnvelope: RequestHandler<{ id: string }> = (req, res) => {
   }
   if (parsedBody.budget < 0) {
     res.status(403).json({
-      message: "Budget cannot be negative!",
+      message: 'Budget cannot be negative!',
     });
     return;
   }

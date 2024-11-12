@@ -21,34 +21,44 @@
       <!-- Envelopes will be displayed here -->
     </div>
 
+    <button id="showEnvelopes">Show Budgets</button>
+
     <div class="operations">
       <div class="operation">
         <h3>Create Envelope</h3>
-        <input type="text" id="createName" placeholder="Name" />
-        <input type="number" id="createBudget" placeholder="Budget" />
-        <button id="createButton">Create</button>
+        <form id="createEnvelope">
+          <input type="text" id="createName" placeholder="Name" />
+          <input type="number" id="createBudget" placeholder="Budget" />
+          <button id="createButton">Create</button>
+        </form>
       </div>
 
       <div class="operation">
         <h3>Update Envelope</h3>
-        <input type="text" id="updateId" placeholder="ID" />
-        <input type="text" id="updateName" placeholder="New Name" />
-        <input type="number" id="updateBudget" placeholder="New Budget" />
-        <button id="updateButton">Update</button>
+        <form action="">
+          <input type="text" id="updateId" placeholder="ID" />
+          <input type="text" id="updateName" placeholder="New Name" />
+          <input type="number" id="updateBudget" placeholder="New Budget" />
+          <button id="updateButton">Update</button>
+        </form>
       </div>
 
       <div class="operation">
         <h3>Delete Envelope</h3>
-        <input type="text" id="deleteId" placeholder="ID" />
-        <button id="deleteButton">Delete</button>
+        <form action="">
+          <input type="text" id="deleteId" placeholder="ID" />
+          <button id="deleteButton">Delete</button>
+        </form>
       </div>
 
       <div class="operation">
         <h3>Transfer Budget</h3>
-        <input type="text" id="fromId" placeholder="From ID" />
-        <input type="text" id="toId" placeholder="To ID" />
-        <input type="number" id="amount" placeholder="Amount" />
-        <button id="transferButton">Transfer</button>
+        <form action="">
+          <input type="text" id="fromId" placeholder="From ID" />
+          <input type="text" id="toId" placeholder="To ID" />
+          <input type="number" id="amount" placeholder="Amount" />
+          <button id="transferButton">Transfer</button>
+        </form>
       </div>
     </div>
   </body>
