@@ -7,9 +7,12 @@ import {
   updateEnvelope,
   deleteSingleEnvelope,
   transferBudget,
+  setEnvelopeIndex,
 } from "../controllers/envelopes-controller";
 
 export const envelopeRouter = Router();
+
+envelopeRouter.param("id", setEnvelopeIndex);
 
 envelopeRouter.get("", getAllEnvelopes);
 

@@ -1,7 +1,6 @@
-import type { RequestHandler } from "express";
+import type { RequestHandler, RequestParamHandler } from "express";
 import { Envelope } from "../models/envelope";
 
-// TODO: extract and isolate duplicate code -> check out param function from express IRouter.param()
 // TODO: use try/catch blocks and better error handling
 
 // Review Feedback:
@@ -19,6 +18,18 @@ function findEnvelopeIndex(id: string): number {
     return item.id === id;
   });
 }
+
+// Middleware that sets request object property
+export const setEnvelopeIndex: RequestParamHandler = (req, res, next, id) => {
+  const foundIndex = envelopes.findIndex((item) => item.id === id);
+  if (foundIndex === -1) {
+    return res
+      .status(404)
+      .json({ message: `Couldn't find Envelope id: ${id}` });
+  }
+  req.validatedEnvelopeIndex = foundIndex;
+  next();
+};
 
 export const getAllEnvelopes: RequestHandler = (_req, res) => {
   res.status(200).send(envelopes);
@@ -41,44 +52,22 @@ export const createEnvelope: RequestHandler = (req, res) => {
   }
 };
 
-export const getSingleEnvelope: RequestHandler<{ id: string }> = (req, res) => {
-  const foundEnvelopeIndex = findEnvelopeIndex(req.params.id);
-  if (foundEnvelopeIndex === -1) {
-    res
-      .status(404)
-      .json({ message: `Couldn't find Envelope id: ${req.params.id}` });
-  } else {
-    res.status(200).json(envelopes[foundEnvelopeIndex]);
-  }
+export const getSingleEnvelope: RequestHandler = (req, res) => {
+  res.status(200).json(envelopes[req.validatedEnvelopeIndex]);
 };
 
 export const deleteSingleEnvelope: RequestHandler<{ id: string }> = (
   req,
   res
 ) => {
-  const foundEnvelopeIndex = findEnvelopeIndex(req.params.id);
-  if (foundEnvelopeIndex === -1) {
-    res
-      .status(404)
-      .json({ message: `Couldn't find Envelope id: ${req.params.id}` });
-    return;
-  }
-  res.status(200).json(envelopes[foundEnvelopeIndex]);
-  envelopes.splice(foundEnvelopeIndex, 1);
+  res.status(200).json(envelopes[req.validatedEnvelopeIndex]);
+  envelopes.splice(req.validatedEnvelopeIndex, 1);
 };
 
 // POST requests to extract or add money
 export const accessEnvelope: RequestHandler<{ id: string }> = (req, res) => {
   const parsedBody: { amount: number } = req.body; // TODO: use generic type
-  const foundEnvelopeIndex = findEnvelopeIndex(req.params.id);
-  if (foundEnvelopeIndex === -1) {
-    res
-      .status(404)
-      .json({ message: `Couldn't find Envelope id: ${req.params.id}` });
-    return;
-  }
-  const foundEnvelope: Envelope = envelopes[foundEnvelopeIndex];
-
+  const foundEnvelope: Envelope = envelopes[req.validatedEnvelopeIndex];
   if (parsedBody.amount === undefined) {
     res
       .status(400)
@@ -101,13 +90,6 @@ export const accessEnvelope: RequestHandler<{ id: string }> = (req, res) => {
 
 // PUT request to change envelope title or budget
 export const updateEnvelope: RequestHandler<{ id: string }> = (req, res) => {
-  const foundEnvelopeIndex = findEnvelopeIndex(req.params.id);
-  if (foundEnvelopeIndex === -1) {
-    res
-      .status(404)
-      .json({ message: `Couldn't find Envelope id: ${req.params.id}` });
-    return;
-  }
   const parsedBody: { title: string; budget: number } = req.body; // TODO: use generic type
   if (parsedBody.title === undefined && parsedBody.budget === undefined) {
     res.status(400).json({
@@ -123,12 +105,12 @@ export const updateEnvelope: RequestHandler<{ id: string }> = (req, res) => {
     return;
   }
   if (parsedBody.title) {
-    envelopes[foundEnvelopeIndex].title = parsedBody.title;
+    envelopes[req.validatedEnvelopeIndex].title = parsedBody.title;
   }
   if (parsedBody.budget) {
-    envelopes[foundEnvelopeIndex].budget = parsedBody.budget;
+    envelopes[req.validatedEnvelopeIndex].budget = parsedBody.budget;
   }
-  res.status(200).json(envelopes[foundEnvelopeIndex]);
+  res.status(200).json(envelopes[req.validatedEnvelopeIndex]);
 };
 
 export const transferBudget: RequestHandler<{
