@@ -27,7 +27,7 @@ export const setEnvelopeIndex: RequestParamHandler = (req, res, next, id) => {
       .status(404)
       .json({ message: `Couldn't find Envelope id: ${id}` });
   }
-  req.envelopeIndex = foundIndex;
+  req.validatedEnvelopeIndex = foundIndex;
   next();
 };
 
@@ -53,21 +53,21 @@ export const createEnvelope: RequestHandler = (req, res) => {
 };
 
 export const getSingleEnvelope: RequestHandler = (req, res) => {
-  res.status(200).json(envelopes[req.envelopeIndex]);
+  res.status(200).json(envelopes[req.validatedEnvelopeIndex]);
 };
 
 export const deleteSingleEnvelope: RequestHandler<{ id: string }> = (
   req,
   res
 ) => {
-  res.status(200).json(envelopes[req.envelopeIndex]);
-  envelopes.splice(req.envelopeIndex, 1);
+  res.status(200).json(envelopes[req.validatedEnvelopeIndex]);
+  envelopes.splice(req.validatedEnvelopeIndex, 1);
 };
 
 // POST requests to extract or add money
 export const accessEnvelope: RequestHandler<{ id: string }> = (req, res) => {
   const parsedBody: { amount: number } = req.body; // TODO: use generic type
-  const foundEnvelope: Envelope = envelopes[req.envelopeIndex];
+  const foundEnvelope: Envelope = envelopes[req.validatedEnvelopeIndex];
   if (parsedBody.amount === undefined) {
     res
       .status(400)
@@ -105,12 +105,12 @@ export const updateEnvelope: RequestHandler<{ id: string }> = (req, res) => {
     return;
   }
   if (parsedBody.title) {
-    envelopes[req.envelopeIndex].title = parsedBody.title;
+    envelopes[req.validatedEnvelopeIndex].title = parsedBody.title;
   }
   if (parsedBody.budget) {
-    envelopes[req.envelopeIndex].budget = parsedBody.budget;
+    envelopes[req.validatedEnvelopeIndex].budget = parsedBody.budget;
   }
-  res.status(200).json(envelopes[req.envelopeIndex]);
+  res.status(200).json(envelopes[req.validatedEnvelopeIndex]);
 };
 
 export const transferBudget: RequestHandler<{
