@@ -28,6 +28,7 @@ export class Envelope {
   updateBalance(amount: number) {
     const difference = this._balance - Math.abs(amount);
     if (amount > 0 || difference >= 0) {
+      // UPDATE ENVELOPES SET balance = balance + parsedBody.amount WHERE id = req.params.id
       this._balance += amount;
     }
     return difference;

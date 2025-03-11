@@ -32,6 +32,7 @@ export const setEnvelopeIndex: RequestParamHandler = (req, res, next, id) => {
 };
 
 export const getAllEnvelopes: RequestHandler = (_req, res) => {
+  // SELECT * FROM ENVELOPES
   res.status(200).send(envelopes);
 };
 
@@ -43,6 +44,7 @@ export const createEnvelope: RequestHandler = (req, res) => {
       parsedBody.title,
       parsedBody.budget
     );
+    // INSERT INTO ENVELOPES (title, budget, balance) VALUES (parsedBody.title, parsedBody.budget, parsedBody.budget)
     envelopes.push(envelope);
     res.status(201).send(`Envelope created!\n${JSON.stringify(parsedBody)}`);
   } else {
@@ -53,6 +55,7 @@ export const createEnvelope: RequestHandler = (req, res) => {
 };
 
 export const getSingleEnvelope: RequestHandler = (req, res) => {
+  // SELECT * FROM ENVELOPES WHERE id = req.params.id
   res.status(200).json(envelopes[req.validatedEnvelopeIndex]);
 };
 
@@ -61,12 +64,14 @@ export const deleteSingleEnvelope: RequestHandler<{ id: string }> = (
   res
 ) => {
   res.status(200).json(envelopes[req.validatedEnvelopeIndex]);
+  // DELETE FROM ENVELOPES WHERE id = req.params.id
   envelopes.splice(req.validatedEnvelopeIndex, 1);
 };
 
 // POST requests to extract or add money
 export const accessEnvelope: RequestHandler<{ id: string }> = (req, res) => {
   const parsedBody: { amount: number } = req.body; // TODO: use generic type
+  // SELECT * FROM ENVELOPES WHERE id = req.params.id
   const foundEnvelope: Envelope = envelopes[req.validatedEnvelopeIndex];
   if (parsedBody.amount === undefined) {
     res
