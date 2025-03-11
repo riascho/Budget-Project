@@ -4,8 +4,8 @@ In this iteration I will add a persistence layer (database) to store budget enve
 
 ## Tasks
 
-- [ ] Visualize the end result: What is being built? What can it do?
-- [ ] Design the database: identify what to include in tables and relationships
+- [x] Visualize the end result: What is being built? What can it do?
+- [x] Design the database: identify what to include in tables and relationships
 - [ ] Setup database: using `psql` to create the database and roles
 - [ ] Connect database: using a client or a pool
 - [ ] Create tables: for envelopes
