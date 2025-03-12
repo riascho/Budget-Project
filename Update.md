@@ -6,9 +6,9 @@ In this iteration I will add a persistence layer (database) to store budget enve
 
 - [x] Visualize the end result: What is being built? What can it do?
 - [x] Design the database: identify what to include in tables and relationships
-- [ ] Setup database: using `psql` to create the database and roles
-- [ ] Connect database: using a client or a pool
-- [ ] Create tables: for envelopes
+- [x] Setup database: using `psql` to create the database and roles
+- [x] Connect database: using a client or a pool
+- [x] Create tables: for envelopes
 - [ ] Update requests: identify API calls and update them to use the database directly
 - [ ] Test endpoints: using Postman
 - [ ] Create transactions: add new feature where user can add transactions

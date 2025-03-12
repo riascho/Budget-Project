@@ -1,5 +1,6 @@
 import type { RequestHandler, RequestParamHandler } from "express";
 import { Envelope } from "../models/envelope";
+import { pool } from "../db/db";
 
 // TODO: use try/catch blocks and better error handling
 
@@ -9,7 +10,7 @@ import { Envelope } from "../models/envelope";
 // talk to a database and "secretly" stores things in memory while you're developing (This would usually be called a Stub or Mock)
 // This way you'll have everything organized for when you do need/want a database
 
-let envelopeId = 1;
+// let envelopeId = 1;
 const envelopes: Envelope[] = [];
 
 // returns -1 if not found
@@ -31,22 +32,39 @@ export const setEnvelopeIndex: RequestParamHandler = (req, res, next, id) => {
   next();
 };
 
-export const getAllEnvelopes: RequestHandler = (_req, res) => {
+export const getAllEnvelopes: RequestHandler = async (_req, res) => {
   // SELECT * FROM ENVELOPES
-  res.status(200).send(envelopes);
+  try {
+    const queryResponse = await pool.query("SELECT * FROM envelopes");
+    console.log(queryResponse);
+    res.status(200).send(queryResponse.rows[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error fetching envelopes");
+  }
 };
 
-export const createEnvelope: RequestHandler = (req, res) => {
+export const createEnvelope: RequestHandler = async (req, res) => {
   const parsedBody: { title: string; budget: number } = req.body; // TODO: use generic type
   if (parsedBody.title && parsedBody.budget) {
-    const envelope = new Envelope(
-      (envelopeId++).toString(), // TODO: use increment method from global class or variable
-      parsedBody.title,
-      parsedBody.budget
-    );
+    // const envelope = new Envelope(
+    //   (envelopeId++).toString(), // TODO: use increment method from global class or variable
+    //   parsedBody.title,
+    //   parsedBody.budget
+    // );
     // INSERT INTO ENVELOPES (title, budget, balance) VALUES (parsedBody.title, parsedBody.budget, parsedBody.budget)
-    envelopes.push(envelope);
-    res.status(201).send(`Envelope created!\n${JSON.stringify(parsedBody)}`);
+    // envelopes.push(envelope);
+    try {
+      const queryResponse = await pool.query(
+        "INSERT INTO ENVELOPES (title, budget, balance) VALUES ($1, $2, $3)",
+        [parsedBody.title, parsedBody.budget, parsedBody.budget]
+      );
+      res.status(201).send(`Envelope created!\n${JSON.stringify(parsedBody)}`);
+      console.log(queryResponse);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Error creating envelope");
+    }
   } else {
     res
       .status(400)
