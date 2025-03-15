@@ -26,7 +26,7 @@ export async function initializeDb(config?: PoolConfig) {
       );
     }
   }
-  // const pool: Pool = new Pool(config);
+
   setDbLogger(pool);
 
   const client: PoolClient = await pool.connect();

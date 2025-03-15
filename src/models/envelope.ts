@@ -1,36 +1,50 @@
 export class Envelope {
-  constructor(
-    private _id: string,
-    public title: string,
-    public budget: number
-  ) {
-    this.updateBalance(this.budget);
-  }
-  private _balance = 0;
+  id?: number;
+  title: string;
+  budget: number;
+  balance: number;
 
-  get id() {
-    return this._id;
-  }
-
-  get balance() {
-    return this._balance;
-  }
-
-  set balance(n: number) {
-    if (n > 0) {
-      this._balance = n;
-    } else {
-      throw new Error("Balance cannot be negative!");
-    }
+  constructor(title: string, budget: number, id?: number, balance?: number) {
+    this.title = title;
+    this.budget = budget;
+    this.id = id;
+    this.balance = balance || budget;
   }
 
   // will return negative number if over-stretching budget
   updateBalance(amount: number) {
-    const difference = this._balance - Math.abs(amount);
-    if (amount > 0 || difference >= 0) {
-      // UPDATE ENVELOPES SET balance = balance + parsedBody.amount WHERE id = req.params.id
-      this._balance += amount;
+    const newBalance = this.balance - Math.abs(amount);
+    if (amount > 0 || newBalance >= 0) {
+      this.balance += amount;
     }
-    return difference;
+    return newBalance;
   }
+
+  updateTitle(title: string) {
+    this.title = title;
+  }
+
+  // will return negative number if budget is negative
+  updateBudget(budget: number) {
+    if (budget > 0) {
+      this.budget = budget;
+    }
+    return budget;
+  }
+
+  // get id() {
+  //   return this.id;
+  // }
+
+  // get balance() {
+  //   return this.balance;
+  // }
+
+  // set balance(n: number) {
+  //   if (n > 0) {
+  //     this._balance = n;
+  //   } else {
+  //     throw new Error("Balance cannot be negative!");
+  //   }
+  // }
 }
