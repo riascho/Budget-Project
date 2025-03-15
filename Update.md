@@ -9,11 +9,11 @@ In this iteration I will add a persistence layer (database) to store budget enve
 - [x] Setup database: using `psql` to create the database and roles
 - [x] Connect database: using a client or a pool
 - [x] Create tables: for envelopes
-- [ ] Update requests: identify API calls and update them to use the database directly
-- [ ] Test endpoints: using Postman
-- [ ] Create transactions: add new feature where user can add transactions
+- [x] Update requests: identify API calls and update them to use the database directly
+- [x] Test endpoints: using Postman
+- [x] Create transactions: add new feature where user can add transactions
 - [ ] Create transactions endpoint: add API for the transactions to update the database records
-- [ ] Continuous Testing: run application and use Postman to test transactions
+- [x] Continuous Testing: run application and use Postman to test transactions
 - [ ] Write up documentation: using `Swagger`
 - [ ] Deploy application to `Render`: push local changes to Github and deploy from there using Render
 
