@@ -42,8 +42,10 @@ CREATE TABLE IF NOT EXISTS TRANSACTIONS (
     date DATE NOT NULL,
     amount NUMERIC(10,2) NOT NULL,
     description TEXT,
-    envelope_id INTEGER NOT NULL REFERENCES ENVELOPES(id)
-);`);
+    envelope_id INTEGER NOT NULL REFERENCES ENVELOPES(id),
+    CONSTRAINT description_cannot_be_empty CHECK (length(trim(description)) > 0)
+    );`);
+    // await setDbConstraints();
   } catch (error) {
     console.error("Error initializing database:", error);
   } finally {
@@ -52,7 +54,7 @@ CREATE TABLE IF NOT EXISTS TRANSACTIONS (
   }
 }
 
-export function setDbLogger(pool: Pool) {
+function setDbLogger(pool: Pool) {
   pool.on("connect", () => {
     console.log("Client connected to pool");
     console.log("Pool size: ", pool.totalCount);
@@ -67,6 +69,12 @@ export function setDbLogger(pool: Pool) {
     console.error("Unexpected error on idle client", error);
   });
 }
+
+// async function setDbConstraints() {
+//   await pool.query(
+//     `ALTER TABLE transactions ADD CONSTRAINT IF NOT EXISTS description_cannot_be_empty CHECK (length(trim(description)) > 0);`
+//   );
+// }
 
 /** 
  * https://node-postgres.com/

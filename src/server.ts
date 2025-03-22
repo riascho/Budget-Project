@@ -1,5 +1,6 @@
 import Express from "express";
 import { envelopeRouter } from "./routers/envelope-router";
+import { transactionRouter } from "./routers/transaction-router";
 import { initializeDb, dbConfig } from "./db/db";
 
 import dotenv from "dotenv";
@@ -13,6 +14,7 @@ try {
   app.use(Express.json());
 
   app.use("/envelopes", envelopeRouter);
+  app.use("/transactions", transactionRouter);
 
   app.use((req, res) => {
     res.status(404).send(`Endpoint '${req.url}' not Found`);

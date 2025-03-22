@@ -17,4 +17,7 @@ envelopeRouter.get("/:id", getSingleEnvelope);
 envelopeRouter.post("", createEnvelope);
 envelopeRouter.delete("/:id", deleteSingleEnvelope);
 envelopeRouter.put("/:id", updateEnvelope);
+// move this to transaction endpoint?
 envelopeRouter.post("/:id", makeTransaction);
+
+// TODO: make sure only positive numbers are accepted for transaction amount but operation will be subtraction

@@ -45,7 +45,6 @@ export const setEnvelopeIndex: RequestParamHandler = async (
 export const getAllEnvelopes: RequestHandler = async (_req, res) => {
   try {
     const queryResponse = await pool.query("SELECT * FROM envelopes");
-    console.log(queryResponse);
     res.status(200).json(queryResponse.rows);
   } catch (error) {
     console.error(error);
@@ -178,6 +177,7 @@ export const updateEnvelope: RequestHandler<{ id: string }> = async (
   }
 };
 
+// move this to transaction endpoint?
 export const makeTransaction: RequestHandler<{ id: string }> = async (
   req,
   res
@@ -204,6 +204,7 @@ export const makeTransaction: RequestHandler<{ id: string }> = async (
       return;
     }
     const { date, amount, description } = req.body;
+    // TODO: better date handling
     const newTransaction = new Transaction(
       date,
       amount,
@@ -254,6 +255,8 @@ export const makeTransaction: RequestHandler<{ id: string }> = async (
         newTransaction.envelopeId,
       ]
     );
+
+    // TODO: need to make sure that balance update is rolled back if transaction insert fails
   } catch (error) {
     console.error(error);
     res.status(500).send("Error making transaction");
