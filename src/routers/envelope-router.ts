@@ -7,6 +7,7 @@ import {
   updateEnvelope,
   deleteEnvelope,
   setEnvelopeIndex,
+  transferBudget,
 } from "../controllers/envelopes-controller";
 
 export const envelopeRouter = Router();
@@ -17,7 +18,7 @@ envelopeRouter.get("/:id", getSingleEnvelope);
 envelopeRouter.post("", createEnvelope);
 envelopeRouter.delete("/:id", deleteEnvelope);
 envelopeRouter.put("/:id", updateEnvelope);
-// move this to transaction endpoint?
 envelopeRouter.post("/:id", makeTransaction);
+envelopeRouter.post("/:fromId/:toId", transferBudget);
 
-// TODO: make sure only positive numbers are accepted for transaction amount but operation will be subtraction
+// TODO: make sure documentation is clear on where to use request body vs request params

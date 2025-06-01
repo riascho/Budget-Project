@@ -80,7 +80,7 @@ export const getSingleEnvelope: RequestHandler = async (req, res) => {
       "SELECT * FROM envelopes WHERE id = $1",
       [req.validatedEnvelopeIndex]
     );
-    res.status(200).json(queryResponse.rows[0]);
+    res.status(200).json(queryResponse.rows[0]); // here we don't instantiate new Envelope (but in the transferBudget endpoint we do, because we need the .updateBudget method) -> TODO: implement consistency here for consistent interface to send to frontend
   } catch (error) {
     console.error(error);
     res.status(500).send("Error fetching envelope");
@@ -145,8 +145,8 @@ export const updateEnvelope: RequestHandler<{ id: string }> = async (
     foundEnvelope.id = id;
     foundEnvelope.balance = parseInt(balance);
 
-    if (parsedBody.budget && isNaN(parsedBody.budget)) {
-      if (foundEnvelope.updateBudget(parsedBody.budget) < 0) {
+    if (parsedBody.budget && !isNaN(parsedBody.budget)) {
+      if (foundEnvelope.setBudget(parsedBody.budget) < 0) {
         res.status(403).json({
           message: "Budget cannot be negative!",
         });
@@ -170,6 +170,7 @@ export const updateEnvelope: RequestHandler<{ id: string }> = async (
         foundEnvelope.id,
       ]);
     }
+
     res.status(200).send(`Envelope "${foundEnvelope.title}" updated!`);
   } catch (error) {
     console.error(error);
@@ -263,30 +264,57 @@ export const makeTransaction: RequestHandler<{ id: string }> = async (
 };
 
 export const transferBudget: RequestHandler<{
-  from: string;
-  to: string;
-}> = (req, res) => {
-  const fromIndex = findEnvelopeIndex(req.params.from);
-  const toIndex = findEnvelopeIndex(req.params.to);
+  fromId: string;
+  toId: string;
+}> = async (req, res) => {
+  const fromIndex = await findEnvelopeIndex(req.params.fromId);
+  const toIndex = await findEnvelopeIndex(req.params.toId);
 
-  if (fromIndex === -1) {
+  if (!fromIndex) {
     res
       .status(404)
-      .json({ message: `Couldn't find Envelope id: ${req.params.from}` });
+      .json({ message: `Couldn't find Envelope id: ${req.params.fromId}` });
     return;
   }
-  if (toIndex === -1) {
+  if (!toIndex) {
     res
       .status(404)
-      .json({ message: `Couldn't find Envelope id: ${req.params.to}` });
+      .json({ message: `Couldn't find Envelope id: ${req.params.toId}` });
     return;
   }
 
-  const fromEnvelope: Envelope = envelopes[fromIndex];
-  const toEnvelope: Envelope = envelopes[toIndex];
-  const amount = Math.abs(Number.parseInt(req.headers?.amount as string)); // TODO: use generic type
+  const fromEnvelopeResponse = await pool.query(
+    "SELECT * FROM envelopes WHERE id = $1",
+    [fromIndex]
+  );
+  const fromEnvelope = new Envelope(
+    fromEnvelopeResponse.rows[0].title,
+    parseFloat(fromEnvelopeResponse.rows[0].budget),
+    fromEnvelopeResponse.rows[0].id,
+    parseFloat(fromEnvelopeResponse.rows[0].balance)
+  );
+  // TODO: instead of positional arguments, we should modify the constructor to accept object parameters so we can use named parameters for better readability and maintainability.
+  // This would look like this:
+  // const fromEnvelope = new Envelope({       <-- note the object!
+  //   id: fromEnvelopeResponse.rows[0].id,
+  //   title: fromEnvelopeResponse.rows[0].title,
+  //   budget: fromEnvelopeResponse.rows[0].budget,
+  // });
 
-  if (amount === undefined) {
+  const toEnvelopeResponse = await pool.query(
+    "SELECT * FROM envelopes WHERE id = $1",
+    [toIndex]
+  );
+  const toEnvelope = new Envelope(
+    toEnvelopeResponse.rows[0].title,
+    parseFloat(toEnvelopeResponse.rows[0].budget), // node-postgres (pg) returns PostgreSQL NUMERIC type as a JavaScript string by default to preserve precision. JavaScript's Number type can't safely represent all values that a NUMERIC field can hold without potential precision loss.
+    toEnvelopeResponse.rows[0].id,
+    parseFloat(toEnvelopeResponse.rows[0].balance)
+  );
+
+  const amount = Math.abs(Number.parseInt(req.headers?.amount as string)); // TODO: use generic type, put amount in body?
+
+  if (!amount || isNaN(amount)) {
     res.status(400).json({
       message: "You need to send an 'amount' in the request header!",
     });
@@ -302,8 +330,18 @@ export const transferBudget: RequestHandler<{
     return;
   }
 
-  fromEnvelope.budget -= amount;
-  toEnvelope.budget += amount;
+  fromEnvelope.updateBudget(-amount);
+  toEnvelope.updateBudget(amount);
+
+  await pool.query("UPDATE envelopes SET budget =$1 WHERE id = $2", [
+    fromEnvelope.budget,
+    fromEnvelope.id,
+  ]);
+  await pool.query("UPDATE envelopes SET budget =$1 WHERE id =$2", [
+    toEnvelope.budget,
+    toEnvelope.id,
+  ]);
+
   res.status(200).json({
     message: `Transferred $${amount} from envelope ${fromEnvelope.title.toUpperCase()} to envelope ${toEnvelope.title.toUpperCase()}`,
   });

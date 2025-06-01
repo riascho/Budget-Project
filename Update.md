@@ -12,15 +12,15 @@ In this iteration I will add a persistence layer (database) to store budget enve
 - [x] Update requests: identify API calls and update them to use the database directly
 - [x] Test endpoints: using Postman
 - [x] Create transactions: add new feature where user can add transactions
-- [ ] Create transactions endpoint: add API for the transactions to update the database records
+- [x] Create transactions endpoint: add API for the transactions to update the database records
 - [x] Continuous Testing: run application and use Postman to test transactions
-- [ ] Write up documentation: using `Swagger`
+- [ ] Write up documentation: using `Swagger` (check final endpoints and db names)
 - [ ] Deploy application to `Render`: push local changes to Github and deploy from there using Render
 
 ## Bonus Tasks
 
 - [ ] Add FrontEnd: create web page that displays envelopes & balances and allows users to manage transactions
-- [ ] Add Tests: that can be run using `npm test`
+- [ ] Add Tests: that can be run using `npm test` (incl. `psql` tests)
 - [ ] Refactor code and update dependencies (`package.json`) and review project directory structure
 
 ## Endpoints Visualization

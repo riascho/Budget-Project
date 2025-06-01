@@ -24,12 +24,22 @@ export class Envelope {
     this.title = title;
   }
 
-  // will return negative number if budget is negative
-  updateBudget(budget: number) {
+  setBudget(budget: number) {
     if (budget > 0) {
       this.budget = budget;
+    } else {
+      throw new Error("Budget cannot be negative!");
     }
-    return budget;
+    return this.budget;
+  }
+
+  updateBudget(amount: number) {
+    if (this.budget + amount < 0) {
+      throw new Error("Budget cannot be negative!");
+    } else {
+      this.budget += amount;
+    }
+    return this.budget;
   }
 
   // get id() {

@@ -170,3 +170,5 @@ export const updateTransaction: RequestHandler<{ id: string }> = async (
     res.status(500).send("Error updating transaction");
   }
 };
+
+// TODO: also be able to update envelope ID (if wrong envelope was used) -> need to changes balances of those two envelopes in that case!
