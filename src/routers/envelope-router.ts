@@ -5,7 +5,7 @@ import {
   getSingleEnvelope,
   makeTransaction,
   updateEnvelope,
-  deleteSingleEnvelope,
+  deleteEnvelope,
   setEnvelopeIndex,
 } from "../controllers/envelopes-controller";
 
@@ -15,7 +15,7 @@ envelopeRouter.param("id", setEnvelopeIndex);
 envelopeRouter.get("", getAllEnvelopes);
 envelopeRouter.get("/:id", getSingleEnvelope);
 envelopeRouter.post("", createEnvelope);
-envelopeRouter.delete("/:id", deleteSingleEnvelope);
+envelopeRouter.delete("/:id", deleteEnvelope);
 envelopeRouter.put("/:id", updateEnvelope);
 // move this to transaction endpoint?
 envelopeRouter.post("/:id", makeTransaction);

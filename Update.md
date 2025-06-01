@@ -27,15 +27,18 @@ In this iteration I will add a persistence layer (database) to store budget enve
 
 ```mermaid
 graph LR
-    A["/envelopes"] -->|"GET"| B["/"] --> AB["getAllEnvelopes"]
+    A["/envelopes"] -->|"GET"| AA["/"] --> AB["getAllEnvelopes"]
     A -->|"POST"| C["/"] --> AC["createEnvelope"]
     A -->|"GET"| D["/:id"] -->|":id"| AD["getSingleEnvelope"]
-    A -->|"POST"| E["/:id"] -->|":id"| AE["accessEnvelope"]
     A -->|"PUT"| F["/:id"] -->|":id"| AF["updateEnvelope"]
-    A -->|"DELETE"| G["/:id"] -->|":id"| AG["deleteSingleEnvelope"]
+    A -->|"DELETE"| G["/:id"] -->|":id"| AG["deleteEnvelope"]
     A -->|"POST"| H["/transfer/:from/:to"] -->|":from :to"| AH["transferBudget"]
-    A -->|"POST"| I["/transaction"] --> AI["createTransaction"]
+    A -->|"POST"| I["/transaction"] -->|":id"| AI["makeTransaction"]
 
+    B["/transactions"] -->|"GET"| BB["/"] --> BC["getAllTransactions"]
+    B -->|"GET"| BD["/:id"] --> |":id"| BE["getSingleTransaction"]
+    B --> |"PUT"| BF["/:id"] --> |":id"| BG["updateTransaction"]
+    B --> |"DELETE"| BH["/:id"] --> |":id"| BI["deleteTransaction"]
 ```
 
 ## Postgres Database Visualization
@@ -47,7 +50,6 @@ erDiagram
         SERIAL id PK
         VARCHAR title
         NUMERIC budget
-        NUMERIC balance
     }
     TRANSACTIONS {
         SERIAL id PK
@@ -57,3 +59,18 @@ erDiagram
         INT envelope_id FK
     }
 ```
+
+## Envelopes
+
+- `ENVELOPES` are initiliazed with budget and title
+- only title can be updated
+- budget can only be updated via making a transaction
+
+## Transactions
+
+- `TRANSACTIONS` can be both negative and positive
+- have to be associated with an envelope
+- every transaction affects the envelope's budget
+- if transaction would cause envelope's budget to be negative, the transaction is not successfull
+- budget can be transferred from one envelope to the other
+- this would result in two transactions (e.g. +400 and -400) referencing the exchanging envelopes

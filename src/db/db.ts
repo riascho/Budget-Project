@@ -34,8 +34,7 @@ export async function initializeDb(config?: PoolConfig) {
     await client.query(`CREATE TABLE IF NOT EXISTS ENVELOPES (
     id SERIAL PRIMARY KEY,
     title VARCHAR(100) NOT NULL,
-    budget NUMERIC(10,2) NOT NULL,
-    balance NUMERIC(10,2) NOT NULL
+    budget NUMERIC(10,2) NOT NULL
 );
 CREATE TABLE IF NOT EXISTS TRANSACTIONS (
     id SERIAL PRIMARY KEY,
@@ -69,12 +68,6 @@ function setDbLogger(pool: Pool) {
     console.error("Unexpected error on idle client", error);
   });
 }
-
-// async function setDbConstraints() {
-//   await pool.query(
-//     `ALTER TABLE transactions ADD CONSTRAINT IF NOT EXISTS description_cannot_be_empty CHECK (length(trim(description)) > 0);`
-//   );
-// }
 
 /** 
  * https://node-postgres.com/

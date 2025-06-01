@@ -87,7 +87,7 @@ export const getSingleEnvelope: RequestHandler = async (req, res) => {
   }
 };
 
-export const deleteSingleEnvelope: RequestHandler<{ id: string }> = async (
+export const deleteEnvelope: RequestHandler<{ id: string }> = async (
   req,
   res
 ) => {
@@ -177,7 +177,6 @@ export const updateEnvelope: RequestHandler<{ id: string }> = async (
   }
 };
 
-// move this to transaction endpoint?
 export const makeTransaction: RequestHandler<{ id: string }> = async (
   req,
   res
@@ -261,4 +260,51 @@ export const makeTransaction: RequestHandler<{ id: string }> = async (
     console.error(error);
     res.status(500).send("Error making transaction");
   }
+};
+
+export const transferBudget: RequestHandler<{
+  from: string;
+  to: string;
+}> = (req, res) => {
+  const fromIndex = findEnvelopeIndex(req.params.from);
+  const toIndex = findEnvelopeIndex(req.params.to);
+
+  if (fromIndex === -1) {
+    res
+      .status(404)
+      .json({ message: `Couldn't find Envelope id: ${req.params.from}` });
+    return;
+  }
+  if (toIndex === -1) {
+    res
+      .status(404)
+      .json({ message: `Couldn't find Envelope id: ${req.params.to}` });
+    return;
+  }
+
+  const fromEnvelope: Envelope = envelopes[fromIndex];
+  const toEnvelope: Envelope = envelopes[toIndex];
+  const amount = Math.abs(Number.parseInt(req.headers?.amount as string)); // TODO: use generic type
+
+  if (amount === undefined) {
+    res.status(400).json({
+      message: "You need to send an 'amount' in the request header!",
+    });
+    return;
+  }
+
+  if (fromEnvelope.budget < amount) {
+    res.status(403).json({
+      message: `Not enough budget in envelope ${fromEnvelope.title.toUpperCase()} to transfer $${amount}! Current budget: $${
+        fromEnvelope.budget
+      }`,
+    });
+    return;
+  }
+
+  fromEnvelope.budget -= amount;
+  toEnvelope.budget += amount;
+  res.status(200).json({
+    message: `Transferred $${amount} from envelope ${fromEnvelope.title.toUpperCase()} to envelope ${toEnvelope.title.toUpperCase()}`,
+  });
 };
