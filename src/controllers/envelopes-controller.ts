@@ -182,10 +182,14 @@ export const makeTransaction: RequestHandler<{ id: string }> = async (
   req,
   res
 ) => {
+  const client = await pool.connect();
+
   try {
-    // 0. Validate if proper request made TODO: DRY!!!!
+    await client.query("BEGIN");
+
     const envelopeId = parseInt(req.params.id);
     if (isNaN(envelopeId)) {
+      await client.query("ROLLBACK");
       res.status(400).json({ message: "Invalid envelope ID" });
       return;
     } // TODO: this should be handled by setEnvelopeIndex middleware
@@ -197,6 +201,7 @@ export const makeTransaction: RequestHandler<{ id: string }> = async (
       parsedBody.description === undefined ||
       parsedBody.amount === undefined
     ) {
+      await client.query("ROLLBACK");
       res.status(400).json({
         message:
           "You need to send a 'date' (string), description (string) and 'amount' (number) property in the request body to make a transaction!",
@@ -204,7 +209,7 @@ export const makeTransaction: RequestHandler<{ id: string }> = async (
       return;
     }
     const { date, amount, description } = req.body;
-    // TODO: better date handling
+    // TODO: better date handling (currently we don't parse date exactly, e.g. "2025-08-01" in the request becomes "2025-07-31T22:00:00.000Z" in the db)
     const newTransaction = new Transaction(
       date,
       amount,
@@ -212,42 +217,48 @@ export const makeTransaction: RequestHandler<{ id: string }> = async (
       envelopeId
     );
 
-    // 1. Validate and Update Envelope balance
-    const foundEnvelopeResponse = await pool.query(
+    const foundEnvelopeResponse = await client.query(
       "SELECT * FROM envelopes WHERE id = $1",
       [req.validatedEnvelopeIndex]
     );
+
     if (foundEnvelopeResponse.rowCount === 0) {
+      await client.query("ROLLBACK");
       res.status(404).json({
         message: `Envelope ID ${req.validatedEnvelopeIndex} not found!`,
       });
-      throw new Error(`Envelope ID ${req.validatedEnvelopeIndex} not found!`);
+      return;
     }
+
     const { id, title, budget, balance } = foundEnvelopeResponse.rows[0];
     // TODO: DRY!!!!
     const foundEnvelope = new Envelope(title, parseInt(budget));
     foundEnvelope.id = id;
-    foundEnvelope.balance = parseInt(balance);
+    foundEnvelope.balance = parseFloat(balance);
 
     const newBalance = foundEnvelope.updateBalance(newTransaction.amount);
+    // TODO: add utility function to check for negative balance
     if (newBalance < 0) {
+      await client.query("ROLLBACK");
       res.status(403).json({
         message: `Extracting $${Math.abs(
           newTransaction.amount
         )} will exceed your current balance by $${Math.abs(
           newBalance
         )}! Please access less or increase balance!`,
+        currentBalance: foundEnvelope.balance,
+        transactionAmount: newTransaction.amount,
       });
+      return;
     }
-    await pool.query("UPDATE envelopes SET balance = $1 WHERE id = $2", [
+
+    await client.query("UPDATE envelopes SET balance = $1 WHERE id = $2", [
       newBalance,
       envelopeId,
     ]);
-    res.status(200).send(`Envelope "${foundEnvelope.title}" updated!`);
 
-    // 2. Register Transaction in transactions table (only if balance allows it!)
-    await pool.query(
-      "INSERT INTO transactions (date, amount, description, envelope_id) VALUES ($1, $2, $3, $4)",
+    const transactionResult = await client.query(
+      "INSERT INTO transactions (date, amount, description, envelope_id) VALUES ($1, $2, $3, $4) RETURNING *",
       [
         newTransaction.date,
         newTransaction.amount,
@@ -256,10 +267,23 @@ export const makeTransaction: RequestHandler<{ id: string }> = async (
       ]
     );
 
-    // TODO: need to make sure that balance update is rolled back if transaction insert fails
+    await client.query("COMMIT");
+
+    res.status(201).json({
+      message: "Transaction created successfully",
+      transaction: transactionResult.rows[0],
+      envelope: {
+        id: foundEnvelope.id,
+        title: foundEnvelope.title,
+        newBalance: newBalance,
+      },
+    });
   } catch (error) {
-    console.error(error);
+    await client.query("ROLLBACK");
+    console.error("Error making transaction:", error);
     res.status(500).send("Error making transaction");
+  } finally {
+    client.release();
   }
 };
 
@@ -267,82 +291,113 @@ export const transferBudget: RequestHandler<{
   fromId: string;
   toId: string;
 }> = async (req, res) => {
-  const fromIndex = await findEnvelopeIndex(req.params.fromId);
-  const toIndex = await findEnvelopeIndex(req.params.toId);
+  const client = await pool.connect();
 
-  if (!fromIndex) {
-    res
-      .status(404)
-      .json({ message: `Couldn't find Envelope id: ${req.params.fromId}` });
-    return;
-  }
-  if (!toIndex) {
-    res
-      .status(404)
-      .json({ message: `Couldn't find Envelope id: ${req.params.toId}` });
-    return;
-  }
+  try {
+    await client.query("BEGIN");
 
-  const fromEnvelopeResponse = await pool.query(
-    "SELECT * FROM envelopes WHERE id = $1",
-    [fromIndex]
-  );
-  const fromEnvelope = new Envelope(
-    fromEnvelopeResponse.rows[0].title,
-    parseFloat(fromEnvelopeResponse.rows[0].budget),
-    fromEnvelopeResponse.rows[0].id,
-    parseFloat(fromEnvelopeResponse.rows[0].balance)
-  );
-  // TODO: instead of positional arguments, we should modify the constructor to accept object parameters so we can use named parameters for better readability and maintainability.
-  // This would look like this:
-  // const fromEnvelope = new Envelope({       <-- note the object!
-  //   id: fromEnvelopeResponse.rows[0].id,
-  //   title: fromEnvelopeResponse.rows[0].title,
-  //   budget: fromEnvelopeResponse.rows[0].budget,
-  // });
+    const fromIndex = await findEnvelopeIndex(req.params.fromId);
+    const toIndex = await findEnvelopeIndex(req.params.toId);
 
-  const toEnvelopeResponse = await pool.query(
-    "SELECT * FROM envelopes WHERE id = $1",
-    [toIndex]
-  );
-  const toEnvelope = new Envelope(
-    toEnvelopeResponse.rows[0].title,
-    parseFloat(toEnvelopeResponse.rows[0].budget), // node-postgres (pg) returns PostgreSQL NUMERIC type as a JavaScript string by default to preserve precision. JavaScript's Number type can't safely represent all values that a NUMERIC field can hold without potential precision loss.
-    toEnvelopeResponse.rows[0].id,
-    parseFloat(toEnvelopeResponse.rows[0].balance)
-  );
+    if (!fromIndex) {
+      await client.query("ROLLBACK");
+      res.status(404).json({
+        message: `Couldn't find Envelope id: ${req.params.fromId}`,
+      });
+      return;
+    }
 
-  const amount = Math.abs(Number.parseInt(req.headers?.amount as string)); // TODO: use generic type, put amount in body?
+    if (!toIndex) {
+      await client.query("ROLLBACK");
+      res.status(404).json({
+        message: `Couldn't find Envelope id: ${req.params.toId}`,
+      });
+      return;
+    }
 
-  if (!amount || isNaN(amount)) {
-    res.status(400).json({
-      message: "You need to send an 'amount' in the request header!",
+    const fromEnvelopeResponse = await pool.query(
+      "SELECT * FROM envelopes WHERE id = $1",
+      [fromIndex]
+    );
+    const fromEnvelope = new Envelope(
+      fromEnvelopeResponse.rows[0].title,
+      parseFloat(fromEnvelopeResponse.rows[0].budget),
+      fromEnvelopeResponse.rows[0].id,
+      parseFloat(fromEnvelopeResponse.rows[0].balance)
+    );
+    // TODO: instead of positional arguments, we should modify the constructor to accept object parameters so we can use named parameters for better readability and maintainability.
+    // This would look like this:
+    // const fromEnvelope = new Envelope({       <-- note the object!
+    //   id: fromEnvelopeResponse.rows[0].id,
+    //   title: fromEnvelopeResponse.rows[0].title,
+    //   budget: fromEnvelopeResponse.rows[0].budget,
+    // });
+
+    const toEnvelopeResponse = await pool.query(
+      "SELECT * FROM envelopes WHERE id = $1",
+      [toIndex]
+    );
+    const toEnvelope = new Envelope(
+      toEnvelopeResponse.rows[0].title,
+      parseFloat(toEnvelopeResponse.rows[0].budget), // node-postgres (pg) returns PostgreSQL NUMERIC type as a JavaScript string by default to preserve precision. JavaScript's Number type can't safely represent all values that a NUMERIC field can hold without potential precision loss.
+      toEnvelopeResponse.rows[0].id,
+      parseFloat(toEnvelopeResponse.rows[0].balance)
+    );
+
+    // TODO: move this to the request body rather than header
+    const amount = Math.abs(Number.parseInt(req.headers?.amount as string));
+
+    if (!amount || isNaN(amount)) {
+      await client.query("ROLLBACK");
+      res.status(400).json({
+        message: "You need to send a valid 'amount' in the request header!",
+      });
+      return;
+    }
+
+    if (fromEnvelope.budget < amount) {
+      await client.query("ROLLBACK");
+      res.status(403).json({
+        message: `Not enough budget in envelope ${fromEnvelope.title.toUpperCase()} to transfer $${amount}! Current budget: $${
+          fromEnvelope.budget
+        }`,
+      });
+      return;
+    }
+
+    fromEnvelope.updateBudget(-amount);
+    toEnvelope.updateBudget(amount);
+
+    await client.query("UPDATE envelopes SET budget = $1 WHERE id = $2", [
+      fromEnvelope.budget,
+      fromEnvelope.id,
+    ]);
+
+    await client.query("UPDATE envelopes SET budget = $1 WHERE id = $2", [
+      toEnvelope.budget,
+      toEnvelope.id,
+    ]);
+
+    await client.query("COMMIT");
+
+    res.status(200).json({
+      message: `Transferred $${amount} from envelope ${fromEnvelope.title.toUpperCase()} to envelope ${toEnvelope.title.toUpperCase()}`,
+      fromEnvelope: {
+        id: fromEnvelope.id,
+        title: fromEnvelope.title,
+        newBudget: fromEnvelope.budget,
+      },
+      toEnvelope: {
+        id: toEnvelope.id,
+        title: toEnvelope.title,
+        newBudget: toEnvelope.budget,
+      },
     });
-    return;
+  } catch (error) {
+    await client.query("ROLLBACK");
+    console.error("Error transferring budget:", error);
+    res.status(500).send("Error transferring budget between envelopes");
+  } finally {
+    client.release();
   }
-
-  if (fromEnvelope.budget < amount) {
-    res.status(403).json({
-      message: `Not enough budget in envelope ${fromEnvelope.title.toUpperCase()} to transfer $${amount}! Current budget: $${
-        fromEnvelope.budget
-      }`,
-    });
-    return;
-  }
-
-  fromEnvelope.updateBudget(-amount);
-  toEnvelope.updateBudget(amount);
-
-  await pool.query("UPDATE envelopes SET budget =$1 WHERE id = $2", [
-    fromEnvelope.budget,
-    fromEnvelope.id,
-  ]);
-  await pool.query("UPDATE envelopes SET budget =$1 WHERE id =$2", [
-    toEnvelope.budget,
-    toEnvelope.id,
-  ]);
-
-  res.status(200).json({
-    message: `Transferred $${amount} from envelope ${fromEnvelope.title.toUpperCase()} to envelope ${toEnvelope.title.toUpperCase()}`,
-  });
 };

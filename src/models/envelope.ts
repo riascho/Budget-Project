@@ -14,7 +14,7 @@ export class Envelope {
   // will return negative number if over-stretching budget
   updateBalance(amount: number) {
     const newBalance = this.balance - Math.abs(amount);
-    if (amount > 0 || newBalance >= 0) {
+    if (amount > 0 && newBalance >= 0) {
       this.balance += amount;
     }
     return newBalance;

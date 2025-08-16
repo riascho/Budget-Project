@@ -79,10 +79,69 @@ For this project, I built an API that allows clients to create and manage a pers
       Add a `README.md` with instructions on how to use your API.
       If you created a repository in the early stages of the project, all you need is to push your main branch in order to update to the repo.
 
-### Bonus Tasks:
+# Updates to the Project
 
-- [ ] Create a frontend that displays envelopes and balances, and allows users to update each envelop balance
-- [ ] Add an API endpoint allowing user to add a single balance that’s distributed to multiple envelopes
+In this iteration I will add a persistence layer (database) to store budget envelopes and their balances. I will use `PostgreSQL` as DB and `Swagger` for API documentation for this. I will also add another feature where users can enter an transaction and it will connect to the database directly.
+
+## Project Tasks
+
+- [x] Visualize the end result: What is being built? What can it do?
+- [x] Design the database: identify what to include in tables and relationships
+- [x] Setup database: using `psql` to create the database and roles
+- [x] Connect database: using a client or a pool
+- [x] Create tables: for envelopes
+- [x] Update requests: identify API calls and update them to use the database directly
+- [x] Test endpoints: using Postman
+- [x] Create transactions: add new feature where user can add transactions
+- [x] Create transactions endpoint: add API for the transactions to update the database records
+- [x] Continuous Testing: run application and use Postman to test transactions
+- [ ] Write up documentation: using `Swagger` (check final endpoints and db names)
+- [ ] Deploy application to `Render`: push local changes to Github and deploy from there using Render
+
+## Bonus Tasks
+
+- [ ] Add API endpoint to reset envelope balances either manually or scheduled
+- [ ] Create a frontend that displays envelopes and balances, and allows users to manage transactions
+- [ ] Add Tests: that can be run using `npm test` (incl. `psql` tests)
+- [ ] Refactor code and update dependencies (`package.json`) and review project directory structure
+
+## Endpoints Visualization
+
+```mermaid
+graph LR
+    A["/envelopes"] -->|"GET"| AA["/"] --> AB["getAllEnvelopes"]
+    A -->|"POST"| C["/"] --> AC["createEnvelope"]
+    A -->|"GET"| D["/:id"] -->|":id"| AD["getSingleEnvelope"]
+    A -->|"PUT"| F["/:id"] -->|":id"| AF["updateEnvelope"]
+    A -->|"DELETE"| G["/:id"] -->|":id"| AG["deleteEnvelope"]
+    A -->|"POST"| H["/:from/:to"] -->|":from :to"| AH["transferBudget"]
+    A -->|"POST"| I["/:id"] -->|":id"| AI["makeTransaction"]
+
+    B["/transactions"] -->|"GET"| BB["/"] --> BC["getAllTransactions"]
+    B -->|"GET"| BD["/:id"] --> |":id"| BE["getSingleTransaction"]
+    B --> |"PUT"| BF["/:id"] --> |":id"| BG["updateTransaction"]
+    B --> |"DELETE"| BH["/:id"] --> |":id"| BI["deleteTransaction"]
+```
+
+## Postgres Database Visualization
+
+```mermaid
+erDiagram
+    ENVELOPES ||--o{ TRANSACTIONS : "has"
+    ENVELOPES {
+        SERIAL id PK
+        VARCHAR title
+        NUMERIC budget
+        NUMERIC balane
+    }
+    TRANSACTIONS {
+        SERIAL id PK
+        DATE date
+        NUMERIC amount
+        TEXT description
+        INT envelope_id FK
+    }
+```
 
 ## Installation
 
@@ -98,6 +157,7 @@ For this project, I built an API that allows clients to create and manage a pers
    ```bash
    npm install
    ```
+4. Specify the `postgres` user and database in `.env` config file to be used for the app
 
 ## Usage
 
@@ -109,4 +169,6 @@ For this project, I built an API that allows clients to create and manage a pers
    ```bash
    npm start
    ```
-3. Open your browser and navigate to `http://localhost:3000`.
+3. Requests can be made to the `envelopes` and `transactions` endpoints at `http://localhost:3000`
+
+## Testing

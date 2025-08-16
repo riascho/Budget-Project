@@ -5,7 +5,8 @@ dotenv.config(); // load .env file
 export const dbConfig: PoolConfig = {
   user: process.env.PGUSER,
   host: process.env.PGHOST,
-  database: process.env.PGDATABASE,
+  database:
+    process.env.NODE_ENV === "test" ? "envelopes_test" : process.env.PGDATABASE, // jest sets NODE_END to test when running npm test
   password: process.env.PGPASSWORD,
   port: parseInt(process.env.PGPORT ?? "5432"),
 };
@@ -34,7 +35,8 @@ export async function initializeDb(config?: PoolConfig) {
     await client.query(`CREATE TABLE IF NOT EXISTS ENVELOPES (
     id SERIAL PRIMARY KEY,
     title VARCHAR(100) NOT NULL,
-    budget NUMERIC(10,2) NOT NULL
+    budget NUMERIC(10,2) NOT NULL,
+    balance NUMERIC(10,2) NOT NULL
 );
 CREATE TABLE IF NOT EXISTS TRANSACTIONS (
     id SERIAL PRIMARY KEY,
