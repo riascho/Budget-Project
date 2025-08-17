@@ -2,6 +2,30 @@ import { type RequestHandler, type RequestParamHandler } from "express";
 import { pool } from "../db/db";
 import { Transaction } from "../models/transaction";
 
+// TODO: Same error handling issues as findEnvelopeIndex:
+// - Should return null for "not found" instead of throwing then catching
+// - Reserve console.error for actual database errors, not business logic
+// - This creates unnecessary console noise during normal test scenarios
+
+/**
+ * Let middleware handle the database errors
+ *
+  async function findTransactionIndex(id: string): Promise<number | null> {
+    try {
+      const queryResponse = await pool.query(
+        "SELECT id FROM transactions WHERE id = $1",
+        [id]
+      );
+      return queryResponse.rows.length === 0 ? null :
+  queryResponse.rows[0].id;
+    } catch (dbError) {
+      // Only log actual database errors, not business logic
+      console.error("Database error in findTransactionIndex:", dbError);
+      throw dbError; // Let middleware handle it
+    }
+  }
+ */
+
 async function findTransactionIndex(id: string): Promise<number | undefined> {
   try {
     const dbResponse = await pool.query(
@@ -15,6 +39,7 @@ async function findTransactionIndex(id: string): Promise<number | undefined> {
   } catch (error) {
     console.error(error);
   }
+  return undefined;
 }
 
 export const setTransactionIndex: RequestParamHandler = async (
@@ -163,34 +188,37 @@ export const updateTransaction: RequestHandler<{ id: string }> = async (
   const client = await pool.connect();
 
   try {
-    await client.query("BEGIN");
-
+    // TODO: standardize request body type (should be done by middle ware)
     const parsedBody: {
       description?: string;
       amount?: number;
       date?: string;
-      envelope_id?: number;
     } = req.body;
 
-    if (
-      (!parsedBody.description || parsedBody.description.trim() === "") &&
-      !parsedBody.amount &&
-      !parsedBody.date &&
-      !parsedBody.envelope_id
-    ) {
-      await client.query("ROLLBACK");
+    if (!parsedBody.description && !parsedBody.amount && !parsedBody.date) {
       res.status(400).json({
         message:
-          "You need to send a 'description' (string) or 'amount' (number) or 'date' (string) property in the request body to update transaction!",
+          "You need to update at least 'description' (string) or 'amount' (number) or 'date' (string)!",
+      });
+      return;
+    } else if (
+      parsedBody.description !== undefined &&
+      parsedBody.description.trim() === ""
+    ) {
+      res.status(400).json({
+        message: "Description cannot be empty!",
       });
       return;
     }
+
+    await client.query("BEGIN");
 
     const foundTransactionResponse = await client.query(
       "SELECT * FROM transactions WHERE id = $1",
       [req.validatedTransactionIndex]
     );
 
+    // this should be done by middleware
     if (foundTransactionResponse.rowCount === 0) {
       await client.query("ROLLBACK");
       res.status(404).json({

@@ -104,6 +104,7 @@ In this iteration I will add a persistence layer (database) to store budget enve
 - [ ] Create a frontend that displays envelopes and balances, and allows users to manage transactions
 - [ ] Add Tests: that can be run using `npm test` (incl. `psql` tests)
 - [ ] Refactor code and update dependencies (`package.json`) and review project directory structure
+- [ ] Improve and enhance test coverage
 
 ## Endpoints Visualization
 
@@ -171,4 +172,15 @@ erDiagram
    ```
 3. Requests can be made to the `envelopes` and `transactions` endpoints at `http://localhost:3000`
 
-## Testing
+## Testing with Jest
+
+For testing I have chosen an approach of using a dedicated test database to insure tests are isolated and repeatable.
+Jest sets the `NODE_ENV=test` and we can use that to [determine which database](/src/db/db.ts) to use. With this setup we automatically create and drop the `envelopes_test` database using the same [prod table creation query](/src/tests/setup.ts). I'm also making sure that all data is cleaned between tests and sequence counters are reset.
+
+I'm also using `supertest`, which makes HTTP requests and eliminates the need for running an actual express server.
+
+To run the tests:
+
+```
+npm test
+```

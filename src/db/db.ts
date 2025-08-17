@@ -6,12 +6,26 @@ export const dbConfig: PoolConfig = {
   user: process.env.PGUSER,
   host: process.env.PGHOST,
   database:
-    process.env.NODE_ENV === "test" ? "envelopes_test" : process.env.PGDATABASE, // jest sets NODE_END to test when running npm test
+    process.env.NODE_ENV === "test" ? "envelopes_test" : process.env.PGDATABASE, // jest sets NODE_ENV to test when running npm test
   password: process.env.PGPASSWORD,
   port: parseInt(process.env.PGPORT ?? "5432"),
 };
 
 export const pool: Pool = new Pool(dbConfig);
+export const tableCreationQuery = `CREATE TABLE IF NOT EXISTS ENVELOPES (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(100) NOT NULL,
+  budget NUMERIC(10,2) NOT NULL,
+  balance NUMERIC(10,2) NOT NULL
+);
+CREATE TABLE IF NOT EXISTS TRANSACTIONS (
+  id SERIAL PRIMARY KEY,
+  date DATE NOT NULL,
+  amount NUMERIC(10,2) NOT NULL,
+  description TEXT,
+  envelope_id INTEGER NOT NULL REFERENCES ENVELOPES(id),
+  CONSTRAINT description_cannot_be_empty CHECK (length(trim(description)) > 0)
+  );`;
 
 export async function initializeDb(config?: PoolConfig) {
   if (!config) {
@@ -32,20 +46,7 @@ export async function initializeDb(config?: PoolConfig) {
 
   const client: PoolClient = await pool.connect();
   try {
-    await client.query(`CREATE TABLE IF NOT EXISTS ENVELOPES (
-    id SERIAL PRIMARY KEY,
-    title VARCHAR(100) NOT NULL,
-    budget NUMERIC(10,2) NOT NULL,
-    balance NUMERIC(10,2) NOT NULL
-);
-CREATE TABLE IF NOT EXISTS TRANSACTIONS (
-    id SERIAL PRIMARY KEY,
-    date DATE NOT NULL,
-    amount NUMERIC(10,2) NOT NULL,
-    description TEXT,
-    envelope_id INTEGER NOT NULL REFERENCES ENVELOPES(id),
-    CONSTRAINT description_cannot_be_empty CHECK (length(trim(description)) > 0)
-    );`);
+    await client.query(tableCreationQuery);
     // await setDbConstraints();
   } catch (error) {
     console.error("Error initializing database:", error);

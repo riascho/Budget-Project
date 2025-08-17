@@ -6,7 +6,7 @@ import { initializeDb, dbConfig } from "./db/db";
 import dotenv from "dotenv";
 dotenv.config(); // load .env file
 
-const app = Express();
+export const app = Express();
 const PORT = "3000";
 
 try {

@@ -3,6 +3,32 @@ import { Envelope } from "../models/envelope";
 import { Transaction } from "../models/transaction";
 import { pool } from "../db/db";
 
+// TODO: Refactor error handling - this function mixes error patterns:
+// - Throwing then immediately catching defeats the purpose of exceptions
+// - "Not found" isn't an error, it's a valid business case that should return null
+// - console.error should be reserved for actual errors (DB failures), not business logic
+// - Better approach: return null for "not found", only throw for actual DB errors
+// - This would eliminate console noise in tests and make error handling clearer
+
+/**
+ * Let middleware handle the database errors
+ * 
+  async function findEnvelopeIndex(id: string): Promise<number | null> {
+    try {
+      const queryResponse = await pool.query(
+        "SELECT id FROM envelopes WHERE id = $1",
+        [id]
+      );
+      return queryResponse.rows.length === 0 ? null :
+  queryResponse.rows[0].id;
+    } catch (dbError) {
+      // Only log actual database errors, not business logic
+      console.error("Database error in findEnvelopeIndex:", dbError);
+      throw dbError; // Let middleware handle it
+    }
+  }
+ */
+
 async function findEnvelopeIndex(id: string): Promise<number | undefined> {
   try {
     const queryResponse = await pool.query(
@@ -57,12 +83,11 @@ export const createEnvelope: RequestHandler = async (req, res) => {
     const parsedBody: { title: string; budget: number } = req.body; // TODO: improve body parsing and validation
     if (parsedBody.title && parsedBody.budget) {
       const envelope = new Envelope(parsedBody.title, parsedBody.budget);
-      const queryResponse = await pool.query(
+      await pool.query(
         "INSERT INTO ENVELOPES (title, budget, balance) VALUES ($1, $2, $3)",
         [envelope.title, envelope.budget, envelope.balance]
       );
       res.status(201).send(`Envelope created!\n${JSON.stringify(parsedBody)}`);
-      console.log(queryResponse);
     } else {
       res
         .status(400)
@@ -103,9 +128,9 @@ export const deleteEnvelope: RequestHandler<{ id: string }> = async (
       );
     }
     if (queryResponse.rowCount === 1) {
-      res.status(200).send(`Deleted ${queryResponse.rowCount} Row.`);
+      res.status(204).send(`Deleted ${queryResponse.rowCount} Row.`);
     } else {
-      res.status(200).send(`Deleted ${queryResponse.rowCount} Rows.`);
+      res.status(204).send(`Deleted ${queryResponse.rowCount} Rows.`);
     }
   } catch (error) {
     console.error(error);
