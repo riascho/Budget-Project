@@ -81,7 +81,7 @@ For this project, I built an API that allows clients to create and manage a pers
 
 # Updates to the Project
 
-In this iteration I will add a persistence layer (database) to store budget envelopes and their balances. I will use `PostgreSQL` as DB and `Swagger` for API documentation for this. I will also add another feature where users can enter an transaction and it will connect to the database directly.
+In this iteration I have added a persistence layer (database) to store budget envelopes and their balances. I am using `PostgreSQL` as DB and `Swagger` for API documentation for this. I have also added a new endpoint for transactions where users can manage their envelope balances through transactions. Lastly, I have also added some basic test coverage.
 
 ## Project Tasks
 

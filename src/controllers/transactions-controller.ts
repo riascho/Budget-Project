@@ -188,7 +188,7 @@ export const updateTransaction: RequestHandler<{ id: string }> = async (
   const client = await pool.connect();
 
   try {
-    // TODO: standardize request body type (should be done by middle ware)
+    // TODO: standardize request body type (should be done by middle ware) -> needed for updating envelopes too!
     const parsedBody: {
       description?: string;
       amount?: number;

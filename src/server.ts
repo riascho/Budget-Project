@@ -2,6 +2,7 @@ import Express from "express";
 import { envelopeRouter } from "./routers/envelope-router";
 import { transactionRouter } from "./routers/transaction-router";
 import { initializeDb, dbConfig } from "./db/db";
+import { setupSwagger } from "./swagger";
 
 import dotenv from "dotenv";
 dotenv.config(); // load .env file
@@ -13,6 +14,7 @@ try {
   initializeDb(dbConfig);
   app.use(Express.json());
 
+  setupSwagger(app); // takes app to setup OpenAPI documentation using the swagger config
   app.use("/envelopes", envelopeRouter);
   app.use("/transactions", transactionRouter);
 

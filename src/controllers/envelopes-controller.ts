@@ -113,6 +113,7 @@ export const getSingleEnvelope: RequestHandler = async (req, res) => {
 };
 
 export const deleteEnvelope: RequestHandler<{ id: string }> = async (
+  // TODO: bug: when deleting envelope that has associated transactions! Make sure to implement cascading deletion in postgres
   req,
   res
 ) => {
