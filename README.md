@@ -95,7 +95,7 @@ In this iteration I have added a persistence layer (database) to store budget en
 - [x] Create transactions: add new feature where user can add transactions
 - [x] Create transactions endpoint: add API for the transactions to update the database records
 - [x] Continuous Testing: run application and use Postman to test transactions
-- [ ] Write up documentation: using `Swagger` (check final endpoints and db names)
+- [x] Write up documentation: using `Swagger` (check final endpoints and db names)
 - [ ] Deploy application to `Render`: push local changes to Github and deploy from there using Render
 
 ## Bonus Tasks
@@ -164,7 +164,7 @@ erDiagram
 
 1. Compile the code:
    ```bash
-   tsc
+   npm run build
    ```
 2. Start the application:
    ```bash
