@@ -6,6 +6,7 @@ import { setupSwagger } from "./swagger";
 
 import dotenv from "dotenv";
 dotenv.config(); // load .env file
+const HOST = process.env.PGHOST;
 
 export const app = Express();
 const PORT = "3000";
@@ -23,7 +24,7 @@ try {
   });
 
   app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running on http://${HOST}:${PORT}`);
   });
 } catch (error) {
   console.error("Error starting the server:", error);
