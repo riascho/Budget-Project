@@ -96,7 +96,7 @@ In this iteration I have added a persistence layer (database) to store budget en
 - [x] Create transactions endpoint: add API for the transactions to update the database records
 - [x] Continuous Testing: run application and use Postman to test transactions
 - [x] Write up documentation: using `Swagger` (check final endpoints and db names)
-- [ ] Deploy application to `Render`: push local changes to Github and deploy from there using Render
+- [x] Deploy application to `Render`: push local changes to Github and deploy from there using Render - https://budget-project-9gxa.onrender.com/envelopes
 
 ## Bonus Tasks
 
